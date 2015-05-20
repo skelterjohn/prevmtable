@@ -1,0 +1,3 @@
+FROM busybox
+COPY bin/prevmtable /bin/prevmtable
+ENTRYPOINT ["/bin/prevmtable"]
