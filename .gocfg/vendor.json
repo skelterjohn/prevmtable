@@ -4,6 +4,14 @@
       "URI": "https://go.googlesource.com/net",
       "Ref": "72bfdce4720b8edba5098bb04136d3d6afa992b3"
     },
+    "vendor/src/golang.org/x/oauth2": {
+      "URI": "https://go.googlesource.com/oauth2",
+      "Ref": "f98d0160877ab4712b906626425ed8b0b320907c"
+    },
+    "vendor/src/google.golang.org/api": {
+      "URI": "https://code.googlesource.com/google-api-go-client",
+      "Ref": "d56f328dc27a4097cd0fc535e7c77807f48a2e84"
+    },
     "vendor/src/google.golang.org/cloud": {
       "URI": "https://code.googlesource.com/gocloud",
       "Ref": "ff3a09588427c2aaf64d56ad3bb8e8e24bdb52ac"

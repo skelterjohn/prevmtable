@@ -15,8 +15,8 @@
 package vmtable
 
 import (
-	"gopkg.in/yaml.v2"
 	"google.golang.org/cloud/compute/metadata"
+	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
@@ -37,4 +37,8 @@ func ConfigFromMetadata() (Config, error) {
 	}
 
 	return cfg, nil
+}
+
+func Project() (string, error) {
+	return metadata.ProjectID()
 }

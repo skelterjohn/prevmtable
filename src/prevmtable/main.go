@@ -30,7 +30,7 @@ func orExit(err error) {
 }
 
 func main() {
-	cfg, err := vmtable.ConfigFromMetadata()
+	t, err := vmtable.NewVMTable()
 	orExit(err)
-	fmt.Println(cfg.GCEImage)
+	orExit(t.RefreshVMsInZone("us-central1-f"))
 }
