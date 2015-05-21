@@ -1,5 +1,10 @@
 #! /bin/bash
 
+wgo install prevmtable || exit
+
+echo "building the container..."
+docker build -t deploy -f Dockerfile.deploy . &> /dev/null || exit
+
 project=$(gcloud config list core/project --format=text | cut -d ' ' -f 2)
 
 echo "running the faux metadata container..."
@@ -11,6 +16,13 @@ computeMetadata:
       projectId: &PROJECT-ID
         $project
       numericProjectId: 1234
+      attributes:
+        prevmtable: |
+          allowedzones:
+          - us-central1-a
+          - us-central1-f
+          machinetype: f1-micro
+          gceimage: coreos
     instance:
       projectId: *PROJECT-ID
       hostname: deploy_machine
@@ -28,9 +40,9 @@ EOM
 metadata_id=$(docker run \
  -d \
  --name metadata \
- -v $metadata:/argo/manifest.yaml \
+ -v $metadata:/prevmtable/manifest.yaml \
  gcr.io/_b_containers_qa/faux-metadata:latest \
-  -manifest_file=/argo/manifest.yaml \
+  -manifest_file=/prevmtable/manifest.yaml \
   -refresh_token=$(gcloud auth print-refresh-token))
 
 docker run \
@@ -39,4 +51,4 @@ docker run \
  --env GCE_METADATA_HOST=metadata.google.internal \
  deploy
 
-docker rm -f metadata
+docker rm -f metadata &> /dev/null

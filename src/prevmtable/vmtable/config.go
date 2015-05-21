@@ -12,25 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package vmtable
 
 import (
-	"fmt"
-	"os"
-
-	"prevmtable/vmtable"
+	"gopkg.in/yaml.v2"
+	"google.golang.org/cloud/compute/metadata"
 )
 
-func orExit(err error) {
-	if err == nil {
-		return
-	}
-	fmt.Fprintln(os.Stderr, err)
-	os.Exit(1)
+type Config struct {
+	AllowedZones []string
+	MachineType  string
+	GCEImage     string
 }
 
-func main() {
-	cfg, err := vmtable.ConfigFromMetadata()
-	orExit(err)
-	fmt.Println(cfg.GCEImage)
+func ConfigFromMetadata() (Config, error) {
+	cfgData, err := metadata.ProjectAttributeValue("prevmtable")
+	if err != nil {
+		return Config{}, err
+	}
+
+	var cfg Config
+	if err := yaml.Unmarshal([]byte(cfgData), &cfg); err != nil {
+		return Config{}, err
+	}
+
+	return cfg, nil
 }

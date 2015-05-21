@@ -12,25 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package vmtable
 
-import (
-	"fmt"
-	"os"
-
-	"prevmtable/vmtable"
-)
-
-func orExit(err error) {
-	if err == nil {
-		return
-	}
-	fmt.Fprintln(os.Stderr, err)
-	os.Exit(1)
-}
-
-func main() {
-	cfg, err := vmtable.ConfigFromMetadata()
-	orExit(err)
-	fmt.Println(cfg.GCEImage)
+type VMTable struct {
 }

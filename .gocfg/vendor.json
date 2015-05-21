@@ -1,0 +1,17 @@
+{
+  "GitRepos": {
+    "vendor/src/golang.org/x/net": {
+      "URI": "https://go.googlesource.com/net",
+      "Ref": "72bfdce4720b8edba5098bb04136d3d6afa992b3"
+    },
+    "vendor/src/google.golang.org/cloud": {
+      "URI": "https://code.googlesource.com/gocloud",
+      "Ref": "ff3a09588427c2aaf64d56ad3bb8e8e24bdb52ac"
+    },
+    "vendor/src/gopkg.in/yaml.v2": {
+      "URI": "https://gopkg.in/yaml.v2",
+      "Ref": "49c95bdc21843256fb6c4e0d370a05f24a0bf213"
+    }
+  },
+  "MercurialRepos": {}
+}
