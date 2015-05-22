@@ -1,5 +1,13 @@
 {
   "GitRepos": {
+    "vendor/src/github.com/rogpeppe/rjson": {
+      "URI": "https://github.com/rogpeppe/rjson",
+      "Ref": "6637e5c2627a5f098523b71a450a8fb72e6e3261"
+    },
+    "vendor/src/github.com/satori/go.uuid": {
+      "URI": "https://github.com/satori/go.uuid",
+      "Ref": "7c7f2020c4c9491594b85767967f4619c2fa75f9"
+    },
     "vendor/src/golang.org/x/net": {
       "URI": "https://go.googlesource.com/net",
       "Ref": "72bfdce4720b8edba5098bb04136d3d6afa992b3"
