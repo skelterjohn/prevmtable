@@ -17,6 +17,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"prevmtable/vmtable"
 )
@@ -32,5 +33,19 @@ func orExit(err error) {
 func main() {
 	t, err := vmtable.NewVMTable()
 	orExit(err)
-	orExit(t.RefreshVMsInZone("us-central1-f"))
+
+	if t.Config.SecondsToRest == 0 {
+		t.Config.SecondsToRest = 5
+	}
+
+	ticker := time.Tick(time.Duration(float64(time.Second) * t.Config.SecondsToRest))
+	for {
+		select {
+		case <-ticker:
+			fmt.Fprintf(os.Stderr, "\r[%v] ", time.Now().Format("2006-01-02 15:04:05 -0700"))
+			t.RefreshConfig()
+			t.RefreshVMs()
+			t.RightSize()
+		}
+	}
 }

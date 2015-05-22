@@ -1,5 +1,6 @@
 #! /bin/bash
 
+echo "compiling the binary..."
 wgo install prevmtable || exit
 
 echo "building the container..."
@@ -18,11 +19,54 @@ computeMetadata:
       numericProjectId: 1234
       attributes:
         prevmtable: |
-          allowedzones:
-          - us-central1-a
-          - us-central1-f
-          machinetype: f1-micro
-          gceimage: coreos
+          {
+            secondsToRest: 5
+            prefix: "delete-"
+            allowedzones: [
+              "us-central1-b"
+            ]
+            target: 1
+            instance: {
+              disks: [
+                {
+                  autoDelete: true
+                  boot: true
+                  initializeParams: {
+                    sourceImage: "https://www.googleapis.com/compute/v1/projects/coreos-cloud/global/images/coreos-stable-647-0-0-v20150512"
+                  }
+                  mode: "READ_WRITE"
+                  type: "PERSISTENT"
+                }
+              ]
+              machineType: "https://www.googleapis.com/compute/v1/projects/{project}/zones/{zone}/machineTypes/f1-micro"
+              name: "{name}"
+              networkInterfaces: [
+                {
+                  accessConfigs: [
+                    {
+                      name: "external-nat"
+                      type: "ONE_TO_ONE_NAT"
+                    }
+                  ]
+                  network: "https://www.googleapis.com/compute/v1/projects/{project}/global/networks/default"
+                }
+              ]
+              scheduling: {
+                automaticRestart: false
+                preemptible: true
+              }
+              serviceAccounts: [
+                {
+                  email: "default"
+                  scopes: [
+                    "https://www.googleapis.com/auth/computeaccounts.readonly"
+                    "https://www.googleapis.com/auth/devstorage.read_only"
+                    "https://www.googleapis.com/auth/logging.write"
+                  ]
+                }
+              ]
+            }
+          }
     instance:
       projectId: *PROJECT-ID
       hostname: deploy_machine

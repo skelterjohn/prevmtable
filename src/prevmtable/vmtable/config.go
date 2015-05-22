@@ -15,14 +15,22 @@
 package vmtable
 
 import (
+	"strings"
+
+	"github.com/rogpeppe/rjson"
 	"google.golang.org/cloud/compute/metadata"
-	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
-	AllowedZones []string
-	MachineType  string
-	GCEImage     string
+	SecondsToRest float64
+	Prefix        string
+	AllowedZones  []string
+	MachineType   string
+	GCEImage      string
+
+	Target int
+
+	Instance rjson.RawMessage
 }
 
 func ConfigFromMetadata() (Config, error) {
@@ -32,7 +40,8 @@ func ConfigFromMetadata() (Config, error) {
 	}
 
 	var cfg Config
-	if err := yaml.Unmarshal([]byte(cfgData), &cfg); err != nil {
+
+	if err := rjson.NewDecoder(strings.NewReader(cfgData)).Decode(&cfg); err != nil {
 		return Config{}, err
 	}
 
