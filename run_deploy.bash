@@ -18,7 +18,7 @@ echo "compiling the binary..."
 wgo install prevmtable || exit
 
 echo "building the container..."
-docker build -t deploy -f Dockerfile.deploy . &> /dev/null || exit
+docker build -t deploy . &> /dev/null || exit
 
 project=$(gcloud config list core/project --format=text | cut -d ' ' -f 2)
 
@@ -40,7 +40,7 @@ computeMetadata:
             allowedzones: [
               "us-central1-b"
             ]
-            target: 1
+            targetVMCount: 1
             instance: {
               disks: [
                 {
