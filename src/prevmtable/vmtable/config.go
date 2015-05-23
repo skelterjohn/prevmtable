@@ -15,18 +15,25 @@
 package vmtable
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/rogpeppe/rjson"
+	compute_v1 "google.golang.org/api/compute/v1"
 	"google.golang.org/cloud/compute/metadata"
 )
 
+var (
+	NotPreemtibleError = errors.New("instance template in config is not preemptible")
+)
+
 type Config struct {
-	SecondsToRest float64
-	Prefix        string
-	AllowedZones  []string
-	MachineType   string
-	GCEImage      string
+	SecondsToRest        int
+	SecondsForExhaustion int
+	Prefix               string
+	AllowedZones         []string
+	MachineType          string
+	GCEImage             string
 
 	Target int
 
@@ -43,6 +50,20 @@ func ConfigFromMetadata() (Config, error) {
 
 	if err := rjson.NewDecoder(strings.NewReader(cfgData)).Decode(&cfg); err != nil {
 		return Config{}, err
+	}
+
+	i := &compute_v1.Instance{}
+	instanceData := string(cfg.Instance)
+	instanceData = strings.Replace(instanceData, "{project}", "proj", -1)
+	instanceData = strings.Replace(instanceData, "{zone}", "zone", -1)
+	instanceData = strings.Replace(instanceData, "{name}", "name", -1)
+
+	if err := rjson.Unmarshal([]byte(instanceData), i); err != nil {
+		return cfg, err
+	}
+
+	if !i.Scheduling.Preemptible {
+		return cfg, NotPreemtibleError
 	}
 
 	return cfg, nil

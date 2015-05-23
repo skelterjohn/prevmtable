@@ -21,6 +21,7 @@ computeMetadata:
         prevmtable: |
           {
             secondsToRest: 5
+            secondsForExhaustion: 120
             prefix: "delete-"
             allowedzones: [
               "us-central1-b"

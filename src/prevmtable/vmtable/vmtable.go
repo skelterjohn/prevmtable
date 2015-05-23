@@ -31,20 +31,23 @@ import (
 )
 
 type VMTable struct {
+	sync.Mutex
+
 	Config  Config
 	compute *compute_v1.Service
 	project string
 
 	ZoneInstances map[string][]*compute_v1.Instance
+
+	ZoneExhaustions map[string]time.Time
 }
 
 func NewVMTable() (*VMTable, error) {
 	t := &VMTable{
-		ZoneInstances: map[string][]*compute_v1.Instance{},
+		ZoneInstances:   map[string][]*compute_v1.Instance{},
+		ZoneExhaustions: map[string]time.Time{},
 	}
-	if err := t.RefreshConfig(); err != nil {
-		return nil, err
-	}
+
 	tokenSource := google.ComputeTokenSource("")
 	client := oauth2.NewClient(context.Background(), tokenSource)
 	var err error
@@ -57,12 +60,31 @@ func NewVMTable() (*VMTable, error) {
 	return t, nil
 }
 
+func (t *VMTable) FreshZones() []string {
+	// technically we don't need to lock/unlock here, but it doesn't hurt.
+	t.Lock()
+	defer t.Unlock()
+
+	now := time.Now()
+	var zones []string
+	for _, z := range t.Config.AllowedZones {
+		exhaustionTime, ok := t.ZoneExhaustions[z]
+		if !ok {
+			zones = append(zones, z)
+			continue
+		}
+		diff := now.Sub(exhaustionTime)
+		if int(diff.Seconds()) > t.Config.SecondsForExhaustion {
+			delete(t.ZoneExhaustions, z)
+			zones = append(zones, z)
+		}
+	}
+	return zones
+}
+
 func (t *VMTable) RefreshConfig() error {
 	var err error
 	t.Config, err = ConfigFromMetadata()
-	if err != nil {
-		log.Printf("error refreshing config: %v", err)
-	}
 	return err
 }
 
@@ -118,8 +140,13 @@ func (t *VMTable) createVMs(count int) {
 	var wg sync.WaitGroup
 	wg.Add(count)
 	offset := rand.Int()
+	zones := t.FreshZones()
+	if len(zones) == 0 {
+		log.Print("all zones exhausted")
+		return
+	}
 	for i := 0; i < count; i++ {
-		zone := t.Config.AllowedZones[(offset+i)%len(t.Config.AllowedZones)]
+		zone := zones[(offset+i)%len(zones)]
 		go func(zone string) {
 			t.createVM(zone)
 			wg.Done()
@@ -170,46 +197,63 @@ func (t *VMTable) createVM(zone string) {
 		return
 	}
 
-	log.Printf("inserting instance %s/%s/%s", t.project, zone, i.Name)
+	log.Printf("inserting instance /%s/%s/%s", t.project, zone, i.Name)
 	op, err := t.compute.Instances.Insert(t.project, zone, i).Do()
 	if err != nil {
 		log.Printf("error inserting instance: %s", err)
 	}
 
 	for range time.Tick(2 * time.Second) {
-		op, err := t.compute.ZoneOperations.Get(t.project, zone, op.Name).Do()
+		op, err = t.compute.ZoneOperations.Get(t.project, zone, op.Name).Do()
 		if err != nil {
 			log.Printf("error fetching operation: %v", err)
 			return
 		}
-		if op.Status == "RUNNING" {
+
+		if op.Status == "RUNNING" || op.Status == "PENDING" {
+			continue
+		}
+		if op.Status == "DONE" {
 			break
 		}
-		if op.Status != "PENDING" {
-			log.Printf("unexpected operation status: %s/%s/%s = %s", t.project, zone, op.Name, op.Status)
-			break
+	}
+	if op.Error != nil {
+		for _, opError := range op.Error.Errors {
+			if opError.Code == "ZONE_RESOURCE_POOL_EXHAUSTED" {
+				t.Lock()
+				t.ZoneExhaustions[zone] = time.Now()
+				t.Unlock()
+				log.Printf("zone %s exhausted", zone)
+				return
+			}
+			log.Printf("op error inserting instance: %s", opError.Code)
 		}
 	}
 }
 
 func (t *VMTable) deleteVM(zone, name string) {
-	log.Printf("deleting instance %s/%s/%s", t.project, zone, name)
+	log.Printf("deleting instance /%s/%s/%s", t.project, zone, name)
 	op, err := t.compute.Instances.Delete(t.project, zone, name).Do()
 	if err != nil {
 		log.Printf("error deleting instance: %s", err)
 	}
 	for range time.Tick(2 * time.Second) {
-		op, err := t.compute.ZoneOperations.Get(t.project, zone, op.Name).Do()
+		op, err = t.compute.ZoneOperations.Get(t.project, zone, op.Name).Do()
 		if err != nil {
 			log.Printf("error fetching operation: %v", err)
 			return
 		}
-		if op.Status == "RUNNING" {
+
+		if op.Status == "RUNNING" || op.Status == "PENDING" {
+			continue
+		}
+		if op.Status == "DONE" {
 			break
 		}
-		if op.Status != "PENDING" {
-			log.Printf("unexpected operation status: %s/%s/%s = %s", t.project, zone, op.Name, op.Status)
-			break
+	}
+	if op.Error != nil {
+		for _, opError := range op.Error.Errors {
+			log.Printf("op error inserting instance: %s", opError.Code)
 		}
 	}
 }

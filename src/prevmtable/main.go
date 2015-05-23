@@ -16,6 +16,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -38,12 +39,15 @@ func main() {
 		t.Config.SecondsToRest = 5
 	}
 
-	ticker := time.Tick(time.Duration(float64(time.Second) * t.Config.SecondsToRest))
+	ticker := time.Tick(time.Duration(int(time.Second) * t.Config.SecondsToRest))
 	for {
 		select {
 		case <-ticker:
 			fmt.Fprintf(os.Stderr, "\r[%v] ", time.Now().Format("2006-01-02 15:04:05 -0700"))
-			t.RefreshConfig()
+			if err := t.RefreshConfig(); err != nil {
+				log.Printf("error refreshing config: %v", err)
+				continue
+			}
 			t.RefreshVMs()
 			t.RightSize()
 		}
