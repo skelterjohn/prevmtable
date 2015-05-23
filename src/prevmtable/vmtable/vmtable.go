@@ -125,14 +125,14 @@ func (t *VMTable) RightSize() {
 		activeVMs += len(zis)
 	}
 
-	if activeVMs == t.Config.Target {
+	if activeVMs == t.Config.TargetVMCount {
 		return
 	}
 
-	if activeVMs < t.Config.Target {
-		t.createVMs(t.Config.Target - activeVMs)
+	if activeVMs < t.Config.TargetVMCount {
+		t.createVMs(t.Config.TargetVMCount - activeVMs)
 	} else {
-		t.deleteVMs(activeVMs - t.Config.Target)
+		t.deleteVMs(activeVMs - t.Config.TargetVMCount)
 	}
 }
 
