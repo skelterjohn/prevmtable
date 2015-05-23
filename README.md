@@ -8,7 +8,9 @@ If a zone's preemtible machines are exhausted, prevmtable will load all the VMs 
 
 ##configuration##
 
-Configuration of the pool is managed through GCE metadata. The project metadata attribute "prevmtable" (overridable with the environment variable PREVMTABLE_ATTRIBUTE) must be an rjson (https://github.com/rogpeppe/rjson) document with that matches the following structure.
+Configuration of the pool is managed through GCE project metadata. The project metadata can be updated at any time to dynamically change prevmtable's configuration - it will be checked again during the next poll cycle.
+
+The project metadata attribute "prevmtable" (overridable with the environment variable PREVMTABLE_ATTRIBUTE) must be an rjson (https://github.com/rogpeppe/rjson) document that matches the following structure.
 
     type Config struct {
       // Seconds between updates.
@@ -20,7 +22,7 @@ Configuration of the pool is managed through GCE metadata. The project metadata 
       // Prefix to put on the name of each VM.
       Prefix string
 
-      // The zones to create VMs in.
+      // The zones in which VMs may be created.
       AllowedZones []string
 
       // Number of VMs to maintain. If there are more, delete. If there are fewer, create.
@@ -37,6 +39,8 @@ If the strings "{project}", "{zone}", and "{name}" are somewhere in the instance
 ##building##
 
 Revision pinning is done with https://github.com/skelterjohn/wgo. Run `wgo restore` in the cloned github repo to fetch dependencies, and `wgo install prevmtable` to build.
+
+Or, set GOPATH to be the root of this repository, and test your luck with `go get prevmtable`. Maybe it will work?
 
 ##docker integration##
 
