@@ -44,7 +44,7 @@ Or, set GOPATH to be the root of this repository, and test your luck with `go ge
 
 ##docker integration##
 
-After building the binary, the Dockerfile can be used to create a container that will run prevmtable. 
+After building the binary for linux 64bit (GOOS=linux, GOARCH=amd64, rebuild go, rebuild the binary), the Dockerfile can be used to create a container that will run prevmtable. 
 
 ##running##
 
