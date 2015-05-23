@@ -54,7 +54,7 @@ The `run_deploy.bash` script demonstrates a way to have GCE metadata context wit
 
 ##example config##
 
-The config below will keep one preemtible f1-micro coreos instance running in either us-central1-b or us-central1-f.
+The config below will keep one preemtible f1-micro coreos instance running in either us-central1-b or us-central1-f. Additionally, it has a startup script that runs a very simple "Hello, world!" http server, and a tag that can be used to manage its firewall status.
 
     {
       secondsToRest: 5
@@ -62,10 +62,24 @@ The config below will keep one preemtible f1-micro coreos instance running in ei
       prefix: "delete-"
       allowedzones: [
         "us-central1-b"
-        "us-central1-f"
       ]
       targetVMCount: 1
       instance: {
+        metadata: {
+          items: [
+            {
+              key: "startup-script"
+              value: "docker run --rm -p 8080:8080 skelterjohn/http"
+            }
+          ]
+        }
+        tags: {
+          items: [
+            "prevmtable-http"
+          ]
+        }
+        machineType: "https://www.googleapis.com/compute/v1/projects/{project}/zones/{zone}/machineTypes/f1-micro"
+        name: "{name}"
         disks: [
           {
             autoDelete: true
@@ -77,8 +91,6 @@ The config below will keep one preemtible f1-micro coreos instance running in ei
             type: "PERSISTENT"
           }
         ]
-        machineType: "https://www.googleapis.com/compute/v1/projects/{project}/zones/{zone}/machineTypes/f1-micro"
-        name: "{name}"
         networkInterfaces: [
           {
             accessConfigs: [
@@ -94,15 +106,5 @@ The config below will keep one preemtible f1-micro coreos instance running in ei
           automaticRestart: false
           preemptible: true
         }
-        serviceAccounts: [
-          {
-            email: "default"
-            scopes: [
-              "https://www.googleapis.com/auth/computeaccounts.readonly"
-              "https://www.googleapis.com/auth/devstorage.read_only"
-              "https://www.googleapis.com/auth/logging.write"
-            ]
-          }
-        ]
       }
     }

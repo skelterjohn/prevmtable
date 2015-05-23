@@ -42,6 +42,21 @@ computeMetadata:
             ]
             targetVMCount: 1
             instance: {
+              metadata: {
+                items: [
+                  {
+                    key: "startup-script"
+                    value: "docker run --rm -p 8080:8080 skelterjohn/http"
+                  }
+                ]
+              }
+              tags: {
+                items: [
+                  "prevmtable-http"
+                ]
+              }
+              machineType: "https://www.googleapis.com/compute/v1/projects/{project}/zones/{zone}/machineTypes/f1-micro"
+              name: "{name}"
               disks: [
                 {
                   autoDelete: true
@@ -53,8 +68,6 @@ computeMetadata:
                   type: "PERSISTENT"
                 }
               ]
-              machineType: "https://www.googleapis.com/compute/v1/projects/{project}/zones/{zone}/machineTypes/f1-micro"
-              name: "{name}"
               networkInterfaces: [
                 {
                   accessConfigs: [
@@ -70,16 +83,6 @@ computeMetadata:
                 automaticRestart: false
                 preemptible: true
               }
-              serviceAccounts: [
-                {
-                  email: "default"
-                  scopes: [
-                    "https://www.googleapis.com/auth/computeaccounts.readonly"
-                    "https://www.googleapis.com/auth/devstorage.read_only"
-                    "https://www.googleapis.com/auth/logging.write"
-                  ]
-                }
-              ]
             }
           }
     instance:
