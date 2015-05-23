@@ -29,15 +29,22 @@ var (
 )
 
 type Config struct {
-	SecondsToRest        int
+	// Seconds between updates.
+	SecondsToRest int
+
+	// Seconds to wait before retrying a zone that got exhausted.
 	SecondsForExhaustion int
-	Prefix               string
-	AllowedZones         []string
-	MachineType          string
-	GCEImage             string
 
-	Target int
+	// Prefix to put on the name of each VM.
+	Prefix string
 
+	// The zones to create VMs in.
+	AllowedZones []string
+
+	// Number of VMs to maintain. If there are more, delete. If there are fewer, create.
+	TargetVMCount int
+
+	// Template to use for instance creation.
 	Instance rjson.RawMessage
 }
 
