@@ -201,6 +201,7 @@ func (t *VMTable) createVM(zone string) {
 	op, err := t.compute.Instances.Insert(t.project, zone, i).Do()
 	if err != nil {
 		log.Printf("error inserting instance: %s", err)
+		return
 	}
 
 	for range time.Tick(2 * time.Second) {
@@ -236,6 +237,7 @@ func (t *VMTable) deleteVM(zone, name string) {
 	op, err := t.compute.Instances.Delete(t.project, zone, name).Do()
 	if err != nil {
 		log.Printf("error deleting instance: %s", err)
+		return
 	}
 	for range time.Tick(2 * time.Second) {
 		op, err = t.compute.ZoneOperations.Get(t.project, zone, op.Name).Do()

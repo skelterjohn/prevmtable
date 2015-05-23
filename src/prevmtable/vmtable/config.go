@@ -16,6 +16,7 @@ package vmtable
 
 import (
 	"errors"
+	"os"
 	"strings"
 
 	"github.com/rogpeppe/rjson"
@@ -41,7 +42,12 @@ type Config struct {
 }
 
 func ConfigFromMetadata() (Config, error) {
-	cfgData, err := metadata.ProjectAttributeValue("prevmtable")
+	attrName := os.Getenv("PREVMTABLE_ATTRIBUTE")
+	if attrName == "" {
+		attrName = "prevmtable"
+	}
+
+	cfgData, err := metadata.ProjectAttributeValue(attrName)
 	if err != nil {
 		return Config{}, err
 	}
