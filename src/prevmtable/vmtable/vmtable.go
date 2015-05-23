@@ -37,7 +37,8 @@ type VMTable struct {
 	compute *compute_v1.Service
 	project string
 
-	ZoneInstances map[string][]*compute_v1.Instance
+	previousZoneInstances map[string][]*compute_v1.Instance
+	ZoneInstances         map[string][]*compute_v1.Instance
 
 	ZoneExhaustions map[string]time.Time
 }
@@ -89,10 +90,29 @@ func (t *VMTable) RefreshConfig() error {
 }
 
 func (t *VMTable) RefreshVMs() {
+	t.previousZoneInstances = t.ZoneInstances
 	t.ZoneInstances = map[string][]*compute_v1.Instance{}
 	for _, zone := range t.Config.AllowedZones {
 		if err := t.RefreshVMsInZone(zone); err != nil {
 			log.Printf("error refreshing zone %s: %v", zone, err)
+		}
+	}
+	for pz, pzis := range t.previousZoneInstances {
+		zis, _ := t.ZoneInstances[pz]
+		currentNames := map[string]bool{}
+		for _, zi := range zis {
+			currentNames[zi.Name] = true
+		}
+		anyInZone := false
+		for _, pzi := range pzis {
+			if _, ok := currentNames[pzi.Name]; !ok {
+				log.Printf("/%s/%s/%s went down", t.project, pz, pzi.Name)
+			} else {
+				anyInZone = true
+			}
+		}
+		if !anyInZone {
+			log.Printf("all instances in /%s/%s went down", t.project, pz)
 		}
 	}
 }
