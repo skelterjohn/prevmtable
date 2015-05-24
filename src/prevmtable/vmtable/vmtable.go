@@ -98,6 +98,9 @@ func (t *VMTable) RefreshVMs() {
 		}
 	}
 	for pz, pzis := range t.previousZoneInstances {
+		if len(pzis) == 0 {
+			continue
+		}
 		zis, _ := t.ZoneInstances[pz]
 		currentNames := map[string]bool{}
 		for _, zi := range zis {
@@ -107,6 +110,9 @@ func (t *VMTable) RefreshVMs() {
 		for _, pzi := range pzis {
 			if _, ok := currentNames[pzi.Name]; !ok {
 				log.Printf("/%s/%s/%s went down", t.project, pz, pzi.Name)
+				if err := t.Config.VanishedHook(t.project, pz, pzi.Name); err != nil {
+					log.Printf("error calling vanished hook: %v", err)
+				}
 			} else {
 				anyInZone = true
 			}
@@ -245,10 +251,16 @@ func (t *VMTable) createVM(zone string) {
 				t.ZoneExhaustions[zone] = time.Now()
 				t.Unlock()
 				log.Printf("zone %s exhausted", zone)
+				if err := t.Config.ExhaustedHook(t.project, zone); err != nil {
+					log.Printf("error calling exhausted hook: %v", err)
+				}
 				return
 			}
 			log.Printf("op error inserting instance: %s", opError.Code)
 		}
+	}
+	if err := t.Config.CreateHook(t.project, zone, name); err != nil {
+		log.Printf("error calling create hook: %v", err)
 	}
 }
 
@@ -277,5 +289,21 @@ func (t *VMTable) deleteVM(zone, name string) {
 		for _, opError := range op.Error.Errors {
 			log.Printf("op error inserting instance: %s", opError.Code)
 		}
+	}
+
+	// remove the instance from the zone instance list, so it isn't reported as vanished.
+	t.Lock()
+	zis := t.ZoneInstances[zone]
+	for i, n := range zis {
+		if n.Name == name {
+			zis = append(zis[:i], zis[i+1:]...)
+			break
+		}
+	}
+	t.ZoneInstances[zone] = zis
+	t.Unlock()
+
+	if err := t.Config.DeleteHook(t.project, zone, name); err != nil {
+		log.Printf("error calling delete hook: %v", err)
 	}
 }

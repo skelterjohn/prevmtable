@@ -32,6 +32,18 @@ computeMetadata:
         $project
       numericProjectId: 1234
       attributes:
+        prevmtable-post-create: |
+          #!/bin/bash
+          echo "VM created: /\$PROJECT/\$ZONE/\$NAME"
+        prevmtable-post-delete: |
+          #!/bin/bash
+          echo "VM deleted: /\$PROJECT/\$ZONE/\$NAME"
+        prevmtable-vanished: |
+          #!/bin/bash
+          echo "VM vanished: /\$PROJECT/\$ZONE/\$NAME"
+        prevmtable-exhausted: |
+          #!/bin/bash
+          echo "Zone exhausted: /\$PROJECT/\$ZONE"
         prevmtable: |
           {
             secondsToRest: 30
@@ -40,6 +52,12 @@ computeMetadata:
             allowedzones: [
               "us-central1-b"
             ]
+            hooks: {
+              create: "prevmtable-post-create"
+              delete: "prevmtable-post-delete"
+              vanished: "prevmtable-vanished"
+              exhausted: "prevmtable-exhausted"
+            }
             targetVMCount: 1
             instance: {
               metadata: {

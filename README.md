@@ -27,6 +27,14 @@ The project metadata attribute "prevmtable" (overridable with the environment va
       // The zones in which VMs may be created.
       AllowedZones []string
 
+      // Project metadata attributes containing script hooks.
+      Hooks struct {
+        Create    string
+        Delete    string
+        Vanished  string
+        Exhausted string
+      }
+
       // Number of VMs to maintain. If there are more, delete. If there are fewer, create.
       TargetVMCount int
 
@@ -34,9 +42,48 @@ The project metadata attribute "prevmtable" (overridable with the environment va
       Instance rjson.RawMessage
     }
 
+If the Hooks are given values, prevmtable will look in project metadata attributes for scripts to run.
+
 The `Instance` component will be decoded into an instance of type http://godoc.org/google.golang.org/api/compute/v1#Instance.
 
 If the strings "{project}", "{zone}", and "{name}" are somewhere in the instance template, they will be replaced with the appropriate project, zone, and name during individual instance creation. See the "example config" section below for a starting point.
+
+###hooks###
+
+Prevmtable currently has four hooks, for instace creation, deletion, loss, and for zone exhaustion. Put a script (don't forget, eg, the "#!/bin/bash" at the top) in a project metadata attribute pointed to by the hooks in the config.
+
+The script hook will be downloaded and run each time the hook fires, so the project metadata can be safely changed during prevmtable operation.
+
+####Create####
+
+$PROJECT: The GCP project.
+$ZONE: The GCE zone.
+$NAME: The GCE instance name.
+
+The create hook is called whenever prevmtable creates a new instance.
+
+####Delete####
+
+$PROJECT: The GCP project.
+$ZONE: The GCE zone.
+$NAME: The GCE instance name.
+
+The delete hook is called whenever prevmtable deletes an old instance.
+
+####Vanished####
+
+$PROJECT: The GCP project.
+$ZONE: The GCE zone.
+$NAME: The GCE instance name.
+
+The vanished hook is called whenever prevmtable notices that an instance disappeared from one update to the next, and it was not deleted by prevmtable.
+
+####Exhausted####
+
+$PROJECT: The GCP project.
+$ZONE: The GCE zone.
+
+The exhausted hook is called whenever prevmtable tries to create an instance in a zone, but the operation fails with ZONE_RESOURCE_POOL_EXHAUSTED.
 
 ##building##
 
@@ -44,7 +91,7 @@ Revision pinning is done with https://github.com/skelterjohn/wgo. Run `wgo resto
 
 Or, set GOPATH to be the root of this repository, and test your luck with `go get prevmtable`. Maybe it will work?
 
-##docker integration##
+###docker integration###
 
 After building the binary for linux 64bit (GOOS=linux, GOARCH=amd64, rebuild go, rebuild the binary), the Dockerfile can be used to create a container that will run prevmtable. 
 
@@ -54,7 +101,7 @@ Running either the binary or the container in context with GCE metadata and meta
 
 The `run_deploy.bash` script demonstrates a way to have GCE metadata context without running from GCE, using a false metadata container that is linked with the prevmtable container. But, for something reliable, you'd probably want kubernetes (or something) to keep the prevmtable container going on a GCE VM.
 
-##example config##
+###example config###
 
 The config below will keep one preemtible f1-micro coreos instance running in either us-central1-b or us-central1-f. Additionally, it has a startup script that runs a very simple "Hello, world!" http server, and a tag that can be used to manage its firewall status.
 

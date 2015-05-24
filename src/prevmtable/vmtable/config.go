@@ -16,7 +16,9 @@ package vmtable
 
 import (
 	"errors"
+	"io/ioutil"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/rogpeppe/rjson"
@@ -40,6 +42,14 @@ type Config struct {
 
 	// The zones to create VMs in.
 	AllowedZones []string
+
+	// Project metadata attributes containing script hooks.
+	Hooks struct {
+		Create    string
+		Delete    string
+		Vanished  string
+		Exhausted string
+	}
 
 	// Number of VMs to maintain. If there are more, delete. If there are fewer, create.
 	TargetVMCount int
@@ -80,6 +90,73 @@ func ConfigFromMetadata() (Config, error) {
 	}
 
 	return cfg, nil
+}
+
+func (c Config) CreateHook(project, zone, name string) error {
+	return c.execHook(
+		c.Hooks.Create,
+		[]string{
+			"PROJECT=" + project,
+			"ZONE=" + zone,
+			"NAME=" + name,
+		})
+}
+
+func (c Config) DeleteHook(project, zone, name string) error {
+	return c.execHook(
+		c.Hooks.Delete,
+		[]string{
+			"PROJECT=" + project,
+			"ZONE=" + zone,
+			"NAME=" + name,
+		})
+}
+
+func (c Config) VanishedHook(project, zone, name string) error {
+	return c.execHook(
+		c.Hooks.Vanished,
+		[]string{
+			"PROJECT=" + project,
+			"ZONE=" + zone,
+			"NAME=" + name,
+		})
+}
+
+func (c Config) ExhaustedHook(project, zone string) error {
+	return c.execHook(
+		c.Hooks.Exhausted,
+		[]string{
+			"PROJECT=" + project,
+			"ZONE=" + zone,
+		})
+}
+
+func (c Config) execHook(scriptAttribute string, env []string) error {
+	if scriptAttribute == "" {
+		return nil
+	}
+	script, err := metadata.ProjectAttributeValue(scriptAttribute)
+	if err != nil {
+		return err
+	}
+
+	scriptFile, err := ioutil.TempFile("", "hook-")
+	if err != nil {
+		return err
+	}
+	scriptPath := scriptFile.Name()
+	if _, err := scriptFile.WriteString(script); err != nil {
+		return err
+	}
+	scriptFile.Close()
+	if err := os.Chmod(scriptPath, 0755); err != nil {
+		return err
+	}
+	cmd := exec.Command(scriptPath)
+	cmd.Env = append(env, os.Environ()...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
 
 func Project() (string, error) {
