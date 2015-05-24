@@ -2,9 +2,11 @@
 
 Because not having enough VMs is preventable.
 
-Prevmtable manages a pool of preemptible VMs across zones. The VMs are created from a provided template, and prevmtable will balance them across zones.
+Prevmtable manages a pool of preemptible Google Compute Engine (GCE) VMs across zones. The VMs are created from a provided template, and prevmtable will balance them (round-robin style) across zones.
 
-If a zone's preemtible machines are exhausted, prevmtable will load all the VMs up in the other zones.
+If a zone's preemtible machines are exhausted, prevmtable will leave that zone alone for a set amount of time, and create new VMs in the remaining zones in the meantime.
+
+Prevmtable is effectively stateless. If it goes down, you can bring it up and it will continue on as before. The only loss is that VMs killed while prevmtable was not running will not be reported.
 
 ##configuration##
 

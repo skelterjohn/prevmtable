@@ -1,0 +1,53 @@
+{
+  secondsToRest: 30
+  secondsForExhaustion: 120
+  prefix: "delete-"
+  allowedzones: [
+    "us-central1-b"
+    "us-central1-f"
+  ]
+  targetVMCount: 1
+  instance: {
+    metadata: {
+      items: [
+        {
+          key: "startup-script"
+          value: "docker run --rm -p 8080:8080 skelterjohn/http"
+        }
+      ]
+    }
+    tags: {
+      items: [
+        "prevmtable-http"
+      ]
+    }
+    machineType: "https://www.googleapis.com/compute/v1/projects/{project}/zones/{zone}/machineTypes/f1-micro"
+    name: "{name}"
+    disks: [
+      {
+        autoDelete: true
+        boot: true
+        initializeParams: {
+          sourceImage: "https://www.googleapis.com/compute/v1/projects/coreos-cloud/global/images/coreos-stable-647-0-0-v20150512"
+        }
+        mode: "READ_WRITE"
+        type: "PERSISTENT"
+      }
+    ]
+    networkInterfaces: [
+      {
+        accessConfigs: [
+          {
+            name: "external-nat"
+            type: "ONE_TO_ONE_NAT"
+          }
+        ]
+        network: "https://www.googleapis.com/compute/v1/projects/{project}/global/networks/default"
+      }
+    ]
+    scheduling: {
+      automaticRestart: false
+      preemptible: true
+    }
+  }
+}
