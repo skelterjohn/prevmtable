@@ -34,7 +34,7 @@ computeMetadata:
       attributes:
         prevmtable: |
           {
-            secondsToRest: 5
+            secondsToRest: 30
             secondsForExhaustion: 120
             prefix: "delete-"
             allowedzones: [
