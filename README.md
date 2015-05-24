@@ -8,6 +8,9 @@ If a zone's preemtible machines are exhausted, prevmtable will leave that zone a
 
 Prevmtable is effectively stateless. If it goes down, you can bring it up and it will continue on as before. The only loss is that VMs killed while prevmtable was not running will not be reported.
 
+##test drive##
+cd into the misc directory and run prevmtable-up.bash to create a small load-balanced cluster of preemptible VMs serving http.
+
 ##configuration##
 
 Configuration of the pool is managed through GCE project metadata. The project metadata can be updated at any time to dynamically change prevmtable's configuration - it will be checked again during the next poll cycle.
