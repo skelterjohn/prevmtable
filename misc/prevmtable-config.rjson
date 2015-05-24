@@ -4,9 +4,12 @@
   prefix: "delete-"
   allowedzones: [
     "us-central1-b"
-    "us-central1-f"
+    "us-central1-c"
   ]
-  targetVMCount: 1
+  hooks: {
+    create: "prevmtable-create-hook"
+  }
+  targetVMCount: 3
   instance: {
     metadata: {
       items: [

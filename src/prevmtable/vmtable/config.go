@@ -17,6 +17,7 @@ package vmtable
 import (
 	"errors"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -94,6 +95,7 @@ func ConfigFromMetadata() (Config, error) {
 
 func (c Config) CreateHook(project, zone, name string) error {
 	return c.execHook(
+		"create",
 		c.Hooks.Create,
 		[]string{
 			"PROJECT=" + project,
@@ -104,6 +106,7 @@ func (c Config) CreateHook(project, zone, name string) error {
 
 func (c Config) DeleteHook(project, zone, name string) error {
 	return c.execHook(
+		"delete",
 		c.Hooks.Delete,
 		[]string{
 			"PROJECT=" + project,
@@ -114,6 +117,7 @@ func (c Config) DeleteHook(project, zone, name string) error {
 
 func (c Config) VanishedHook(project, zone, name string) error {
 	return c.execHook(
+		"vanished",
 		c.Hooks.Vanished,
 		[]string{
 			"PROJECT=" + project,
@@ -124,6 +128,7 @@ func (c Config) VanishedHook(project, zone, name string) error {
 
 func (c Config) ExhaustedHook(project, zone string) error {
 	return c.execHook(
+		"exhausted",
 		c.Hooks.Exhausted,
 		[]string{
 			"PROJECT=" + project,
@@ -131,7 +136,7 @@ func (c Config) ExhaustedHook(project, zone string) error {
 		})
 }
 
-func (c Config) execHook(scriptAttribute string, env []string) error {
+func (c Config) execHook(hookType, scriptAttribute string, env []string) error {
 	if scriptAttribute == "" {
 		return nil
 	}
@@ -152,6 +157,7 @@ func (c Config) execHook(scriptAttribute string, env []string) error {
 	if err := os.Chmod(scriptPath, 0755); err != nil {
 		return err
 	}
+	log.Printf("executing %s hook with %q: %s", hookType, scriptPath, env)
 	cmd := exec.Command(scriptPath)
 	cmd.Env = append(env, os.Environ()...)
 	cmd.Stdout = os.Stdout
