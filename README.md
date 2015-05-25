@@ -59,32 +59,32 @@ The script hook will be downloaded and run each time the hook fires, so the proj
 
 ####Create####
 
-$PROJECT: The GCP project.
-$ZONE: The GCE zone.
-$NAME: The GCE instance name.
+    $PROJECT: The GCP project.
+    $ZONE: The GCE zone.
+    $NAME: The GCE instance name.
 
 The create hook is called whenever prevmtable creates a new instance.
 
 ####Delete####
 
-$PROJECT: The GCP project.
-$ZONE: The GCE zone.
-$NAME: The GCE instance name.
+    $PROJECT: The GCP project.
+    $ZONE: The GCE zone.
+    $NAME: The GCE instance name.
 
 The delete hook is called whenever prevmtable deletes an old instance.
 
 ####Vanished####
 
-$PROJECT: The GCP project.
-$ZONE: The GCE zone.
-$NAME: The GCE instance name.
+    $PROJECT: The GCP project.
+    $ZONE: The GCE zone.
+    $NAME: The GCE instance name.
 
 The vanished hook is called whenever prevmtable notices that an instance disappeared from one update to the next, and it was not deleted by prevmtable.
 
 ####Exhausted####
 
-$PROJECT: The GCP project.
-$ZONE: The GCE zone.
+    $PROJECT: The GCP project.
+    $ZONE: The GCE zone.
 
 The exhausted hook is called whenever prevmtable tries to create an instance in a zone, but the operation fails with ZONE_RESOURCE_POOL_EXHAUSTED.
 
