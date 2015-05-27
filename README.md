@@ -4,7 +4,7 @@ Because not having enough VMs is preventable.
 
 Prevmtable manages a pool of preemptible Google Compute Engine (GCE) VMs across zones. The VMs are created from a provided template, and prevmtable will balance them (round-robin style) across zones.
 
-If a zone's preemtible machines are exhausted, prevmtable will leave that zone alone for a set amount of time, and create new VMs in the remaining zones in the meantime.
+If a zone's preemptible machines are exhausted, prevmtable will leave that zone alone for a set amount of time, and create new VMs in the remaining zones in the meantime.
 
 Prevmtable is effectively stateless. If it goes down, you can bring it up and it will continue on as before. The only loss is that VMs killed while prevmtable was not running will not be reported.
 
@@ -53,7 +53,7 @@ If the strings "{project}", "{zone}", and "{name}" are somewhere in the instance
 
 ###hooks###
 
-Prevmtable currently has four hooks, for instace creation, deletion, loss, and for zone exhaustion. Put a script (don't forget, eg, the "#!/bin/bash" at the top) in a project metadata attribute pointed to by the hooks in the config.
+Prevmtable currently has four hooks, for instance creation, deletion, loss, and for zone exhaustion. Put a script (don't forget, eg, the "#!/bin/bash" at the top) in a project metadata attribute pointed to by the hooks in the config.
 
 The script hook will be downloaded and run each time the hook fires, so the project metadata can be safely changed during prevmtable operation.
 
@@ -106,7 +106,7 @@ The `run_deploy.bash` script demonstrates a way to have GCE metadata context wit
 
 ###example config###
 
-The config below will keep one preemtible f1-micro coreos instance running in either us-central1-b or us-central1-f. Additionally, it has a startup script that runs a very simple "Hello, world!" http server, and a tag that can be used to manage its firewall status.
+The config below will keep one preemptible f1-micro coreos instance running in either us-central1-b or us-central1-f. Additionally, it has a startup script that runs a very simple "Hello, world!" http server, and a tag that can be used to manage its firewall status.
 
     {
       secondsToRest: 30
